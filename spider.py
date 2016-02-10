@@ -40,12 +40,15 @@ def main():
     while(1):
         url = qu.dequeue()
         print url
-        s = requests.get(url).text
-        m = re.findall(re.compile('"(http://.*?)"'), s)
-        for i in range(0,len(m)):
-            if ht.check(m[i]):
-                ht.add(m[i])
-                qu.enqueue(m[i])
+        try:
+            s = requests.get(url, params=None, timeout=5).text
+            m = re.findall(re.compile('"(http://.*?)"'), s)
+            for i in range(0,len(m)):
+                if ht.check(m[i]):
+                    ht.add(m[i])
+                    qu.enqueue(m[i])
+        except Exception as e:
+            print e
 
 if __name__ == "__main__":
     main()
