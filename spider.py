@@ -30,25 +30,48 @@ class Queue:
         else:
             self.list += [p]
     def dequeue(self):
-        self.head += 1
-        return self.list[self.head - 1]
+        try:
+            self.head += 1
+            return self.list[self.head - 1]
+        except Exception as e:
+            print e
+            return None
 
 def main():
-    start_urls = ["http://www.baidu.com"]
+    start_urls = ["http://store.steampowered.com"]
     ht = Hash(start_urls)
     qu = Queue(start_urls)
+    games = []
     while(1):
+        #print ht.dict
         url = qu.dequeue()
+        if url == None:
+            break
         print url
         try:
             s = requests.get(url, params=None, timeout=5).text
-            m = re.findall(re.compile('"(http://.*?)"'), s)
+            game_ids = re.findall(re.compile('http://store.steampowered.com/app/(.*?)/.*'), url)
+            if len(game_ids) > 0:
+                game_id = int(game_ids[0])
+                game_name = re.findall(re.compile('<div class="apphub_AppName">(.*?)</div>'), s)[0]
+                games += [(game_name, game_id)]
+
+            m = re.findall(re.compile('(http://store.steampowered.com/app/.*?)/'), s)
+            #print len(m)
             for i in range(0,len(m)):
                 if ht.check(m[i]):
                     ht.add(m[i])
                     qu.enqueue(m[i])
+                else:
+                    print "-----"
+            if qu.head > 200:
+                break
         except Exception as e:
             print e
+    f = open("out", 'w')
+    for game in games:
+        f.write(str(game) + '\n')
+    f.close()
 
 if __name__ == "__main__":
     main()
